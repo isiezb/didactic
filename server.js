@@ -16,11 +16,13 @@ app.use((req, res, next) => {
         'http://localhost:8000',
         'https://didactic-story-frontend.onrender.com',
         'https://didactic-story-backend.onrender.com',
-        'https://didactic-story.onrender.com'
+        'https://didactic-story.onrender.com',
+        'https://didactic-story-generator.onrender.com'
     ];
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {
         res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
     }
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -215,13 +217,13 @@ app.use((err, req, res, next) => {
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
-    process.exit(1);
+    // Don't exit the process, just log the error
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
     console.error('Unhandled Rejection:', err);
-    process.exit(1);
+    // Don't exit the process, just log the error
 });
 
 // Start server
