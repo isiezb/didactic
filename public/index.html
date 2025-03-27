@@ -473,7 +473,10 @@
 
                 try {
                     const API_URL = 'https://didactic-story-backend.onrender.com';
-
+                    
+                    // Add loading state
+                    output.innerHTML = '<div class="loading">Generating story...</div>';
+                    
                     const response = await fetch(`${API_URL}/generate-story`, {
                         method: 'POST',
                         headers: {
@@ -481,12 +484,13 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(data),
+                        timeout: 60000 // 60 second timeout
                     });
 
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
                         throw new Error(
-                            response.status === 429 ? 'Rate limit exceeded. Please try again in a few minutes.' :
+                            response.status === 429 ? 'Server is busy. Please wait a minute and try again.' :
                             response.status === 503 ? 'Service temporarily unavailable. Please try again later.' :
                             response.status === 504 ? 'Request timeout. Please try again.' :
                             errorData.error || errorData.message || `Server error (${response.status}). Please try again.`

@@ -67,8 +67,13 @@ const testConnection = async () => {
 testConnection();
 
 // OpenRouter API configuration
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+
+if (!OPENROUTER_API_KEY) {
+    console.error('OpenRouter API key is not set in environment variables');
+    process.exit(1);
+}
 
 // Input validation function
 const validateInputs = (inputs) => {
@@ -142,15 +147,18 @@ app.post('/generate-story', async (req, res) => {
                     headers: {
                         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
                         'Content-Type': 'application/json',
-                        'HTTP-Referer': 'http://localhost:8000'
+                        'HTTP-Referer': process.env.NODE_ENV === 'production' 
+                            ? 'https://didactic-story-frontend.onrender.com'
+                            : 'http://localhost:8000'
                     }
                 }
             );
 
-            console.log('OpenRouter API Response:', JSON.stringify(response.data, null, 2));
-
             if (response.data.error) {
-                throw new Error(response.data.error.message || 'API Error');
+                console.error('OpenRouter API Error:', response.data.error);
+                return res.status(429).json({ 
+                    error: 'API rate limit exceeded. Please try again in a few minutes.' 
+                });
             }
 
             if (!response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
@@ -177,15 +185,10 @@ app.post('/generate-story', async (req, res) => {
                     ]);
 
                 if (dbError) {
-                    console.error('Supabase error details:', {
-                        message: dbError.message,
-                        details: dbError.details,
-                        hint: dbError.hint,
-                        code: dbError.code
-                    });
+                    console.error('Supabase error:', dbError);
                     // Continue execution even if database insertion fails
                 } else {
-                    console.log('Successfully stored story in Supabase:', data);
+                    console.log('Successfully stored story in Supabase');
                 }
             } catch (dbError) {
                 console.error('Supabase connection error:', dbError);
