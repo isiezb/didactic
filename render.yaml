@@ -19,4 +19,11 @@ services:
     headers:
       - path: /*
         name: Access-Control-Allow-Origin
-        value: "*" 
+        value: "*"
+      - path: /*
+        name: Cache-Control
+        value: "no-cache"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html 
