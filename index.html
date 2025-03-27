@@ -472,7 +472,7 @@
                 data.word_count = parseInt(data.word_count);
 
                 try {
-                    const response = await fetch('http://localhost:3000/generate-story', {
+                    const response = await fetch('https://didactic-story-backend.onrender.com/generate-story', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

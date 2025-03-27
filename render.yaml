@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: didactic-story-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+
+  - type: static
+    name: didactic-story-frontend
+    buildCommand: null
+    staticPublishPath: ./
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*" 
