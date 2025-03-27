@@ -15,7 +15,8 @@ app.use((req, res, next) => {
     const allowedOrigins = [
         'http://localhost:8000',
         'https://didactic-story-frontend.onrender.com',
-        'https://didactic-story-backend.onrender.com'
+        'https://didactic-story-backend.onrender.com',
+        'https://didactic-story.onrender.com'
     ];
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {

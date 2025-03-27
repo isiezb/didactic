@@ -472,9 +472,7 @@
                 data.word_count = parseInt(data.word_count);
 
                 try {
-                    const API_URL = window.location.hostname === 'localhost' 
-                        ? 'http://localhost:3000' 
-                        : 'https://didactic-story-backend.onrender.com';
+                    const API_URL = 'https://didactic-story-backend.onrender.com';
 
                     const response = await fetch(`${API_URL}/generate-story`, {
                         method: 'POST',
