@@ -35,15 +35,12 @@ app.get('*', (req, res) => {
 });
 
 // Supabase client initialization
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseUrl = 'https://ldexpvsuttybqilbdaxp.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXhwdnN1dHR5YnFpbGJkYXhwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Mjk4OTk1NSwiZXhwIjoyMDU4NTY1OTU1fQ.1gN2iRX0cWa_n_65LyimAITggLW3SL_lemvlYvvPnrI';
 
 // Initialize Supabase client with error handling
 let supabase;
 try {
-    if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Missing Supabase credentials');
-    }
     supabase = createClient(supabaseUrl, supabaseKey);
     console.log('Supabase client initialized successfully');
 } catch (error) {
@@ -67,13 +64,8 @@ const testConnection = async () => {
 testConnection();
 
 // OpenRouter API configuration
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = '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';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
-
-if (!OPENROUTER_API_KEY) {
-    console.error('Missing OpenRouter API key');
-    process.exit(1);
-}
 
 // Input validation function
 const validateInputs = (inputs) => {
@@ -147,9 +139,7 @@ app.post('/generate-story', async (req, res) => {
                     headers: {
                         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
                         'Content-Type': 'application/json',
-                        'HTTP-Referer': process.env.NODE_ENV === 'production' 
-                            ? 'https://didactic-story-frontend.onrender.com'
-                            : 'http://localhost:8000'
+                        'HTTP-Referer': 'http://localhost:8000'
                     }
                 }
             );
@@ -212,7 +202,35 @@ app.post('/generate-story', async (req, res) => {
     }
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Server Error:', err);
+    res.status(500).json({
+        error: 'Internal Server Error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+    console.error('Unhandled Rejection:', err);
+    process.exit(1);
+});
+
 // Start server
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${port} is already in use. Please try a different port or kill the process using this port.`);
+        process.exit(1);
+    } else {
+        console.error('Server error:', err);
+    }
 }); 

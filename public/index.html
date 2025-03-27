@@ -472,7 +472,6 @@
                 data.word_count = parseInt(data.word_count);
 
                 try {
-                    // Use environment-based API URL
                     const API_URL = window.location.hostname === 'localhost' 
                         ? 'http://localhost:3000' 
                         : 'https://didactic-story-backend.onrender.com';
@@ -486,42 +485,47 @@
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(
+                            response.status === 429 ? 'Rate limit exceeded. Please try again in a few minutes.' :
+                            response.status === 503 ? 'Service temporarily unavailable. Please try again later.' :
+                            response.status === 504 ? 'Request timeout. Please try again.' :
+                            errorData.error || errorData.message || `Server error (${response.status}). Please try again.`
+                        );
                     }
 
                     const result = await response.json();
                     
-                    if (result.story) {
-                        output.innerHTML = `
-                            <button class="copy-button" onclick="copyStory()">
-                                <span class="copy-icon">📋</span>
-                                <span class="copy-text">Copy Story</span>
-                            </button>
-                            ${result.story}
-                        `;
-                        const { wordCount, readingTime } = calculateMetrics(result.story);
-                        metrics.innerHTML = `
-                            <div class="metric-item">
-                                <span class="metric-icon">📝</span>
-                                <span>Word count: ${wordCount}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-icon">⏱️</span>
-                                <span>Reading time: ${readingTime} minute${readingTime !== 1 ? 's' : ''}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-icon">📚</span>
-                                <span>Grade: ${data.academic_grade.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-icon">🎓</span>
-                                <span>Subject: ${data.subject}</span>
-                            </div>
-                        `;
-                    } else {
-                        output.innerHTML = `<div class="error">❌ ${result.error || 'Failed to generate story. Please try again.'}</div>`;
+                    if (!result || !result.story) {
+                        throw new Error('Invalid response from server. Please try again.');
                     }
+
+                    output.innerHTML = `
+                        <button class="copy-button" onclick="copyStory()">
+                            <span class="copy-icon">📋</span>
+                            <span class="copy-text">Copy Story</span>
+                        </button>
+                        ${result.story}
+                    `;
+                    const { wordCount, readingTime } = calculateMetrics(result.story);
+                    metrics.innerHTML = `
+                        <div class="metric-item">
+                            <span class="metric-icon">📝</span>
+                            <span>Word count: ${wordCount}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-icon">⏱️</span>
+                            <span>Reading time: ${readingTime} minute${readingTime !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-icon">📚</span>
+                            <span>Grade: ${data.academic_grade.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-icon">🎓</span>
+                            <span>Subject: ${data.subject}</span>
+                        </div>
+                    `;
                 } catch (error) {
                     console.error('Error:', error);
                     output.innerHTML = `<div class="error">❌ ${error.message || 'An error occurred. Please check your connection and try again.'}</div>`;
